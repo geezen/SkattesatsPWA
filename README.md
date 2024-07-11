@@ -1,0 +1,1 @@
+Se brutto- och nettolön från annan valuta samt preliminärskatt.
