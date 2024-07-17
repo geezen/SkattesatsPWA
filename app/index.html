@@ -4,37 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skattesats</title>
+    <link href="styles/styles.css" rel="stylesheet">
 </head>
 <body>
-    <fieldset>
+    <fieldset class="input-set" id="skattetabell-set">
         <legend>Skattetabell</legend>
         <select>
+            <option>Skattetabell 33</option>
             <option>Skattetabell 34</option>
+            <option>Skattetabell 35</option>
         </select>
         <select>
-            <option>2024</option>
+            <option>2022</option>
+            <option>2023</option>
+            <option selected>2024</option>
         </select>
     </fieldset>
-    <fieldset>
+    <fieldset class="input-set">
         <legend>V&auml;xelkurs</legend>
-        <input type="radio" id="manuall-vaxelkurs" />
-        <label for="manuall-vaxelkurs">Manuell</label>
-        <input type="radio" id="auto-vaxelkurs" checked />
-        <label for="auto-vaxelkurs">Automatisk</label>
-        <br>
-        <label for="vaxelkurs">DKK/SEK</label>
-        <input type="number" id="vaxelkurs" value="1.5" disabled />
-        <br>
-        <a href="https://www.exchangerate-api.com">Rates By Exchange Rate API</a>
+        <div id="man-auto">
+            <div>
+                <input type="radio" id="manuall-vaxelkurs" />
+                <label for="manuall-vaxelkurs">Manuell</label>
+            </div>
+            <div>
+                <input type="radio" id="auto-vaxelkurs" checked />
+                <label for="auto-vaxelkurs">Automatisk</label>
+            </div>
+        </div>
+        <div id="vaxelkurs-input">
+            <label for="vaxelkurs">DKK/SEK</label>
+            <input type="number" id="vaxelkurs" value="1.5" disabled />
+        </div>
+        <a href="https://www.exchangerate-api.com" class="attribution-link">Rates By Exchange Rate API</a>
     </fieldset>
-    <p>
+    <p class="brutto-dkk-set">
         <label for="bruttolon">Bruttol&ouml;n DKK:</label>
         <input type="number" id="bruttolon" autofocus/>
     </p>
     <p>
-        Bruttolön SEK: <br>
-        Preliminärskatt SEK: <br>
-        Nettolön SEK:
+        <span>Lön SEK:</span> <span id="brutto-sek-out"></span><br>
+        <span>Preliminärskatt SEK:</span> <span id="skatt-sek-out"></span><br>
+        <span>Nettolön SEK:</span> <span id="netto-sek-out"></span>
     </p>
 </body>
 </html>
