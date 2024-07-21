@@ -5,10 +5,10 @@ updateOutput();
 function updateXRate() {
     console.log("Updating X-rate");
     const dkkObj = JSON.parse(localStorage.getItem("dkkObj"));
-    if (dkkObj == null || dkkObj.time_next_update_unix < Date.now()) {
+    if (dkkObj == null) {
         console.log("No existing X-rate found");
         fetchXRate();
-    } else if (dkkObj.time_next_update_unix < Date.now()){
+    } else if (dkkObj.time_next_update_unix < Date.now() / 1000){
         console.log("Existing X-rate found but out of date", dkkObj);
         setNewXRate(dkkObj);
         fetchXRate();
