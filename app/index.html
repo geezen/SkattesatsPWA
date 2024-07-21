@@ -22,9 +22,9 @@
     </fieldset>
     <fieldset class="input-set">
         <legend>V&auml;xelkurs</legend>
-        <div id="man-auto">
+        <div class="two-columns">
             <div>
-                <input type="radio" id="manuall-vaxelkurs" />
+                <input type="radio" id="manuell-vaxelkurs" />
                 <label for="manuall-vaxelkurs">Manuell</label>
             </div>
             <div>
@@ -40,12 +40,13 @@
     </fieldset>
     <p class="brutto-dkk-set">
         <label for="bruttolon">Bruttol&ouml;n DKK:</label>
-        <input type="number" id="bruttolon" autofocus/>
+        <input type="number" id="bruttolon" value="0" autofocus/>
     </p>
-    <p>
-        <span>Lön SEK:</span> <span id="brutto-sek-out"></span><br>
-        <span>Preliminärskatt SEK:</span> <span id="skatt-sek-out"></span><br>
-        <span>Nettolön SEK:</span> <span id="netto-sek-out"></span>
+    <p class="two-columns">
+        <span>Lön SEK:</span> <span id="brutto-sek-out">test1</span>
+        <span>Preliminärskatt SEK:</span> <span id="skatt-sek-out">test2</span>
+        <span>Nettolön SEK:</span> <span id="netto-sek-out">test3</span>
     </p>
+    <script src="scripts/app.js"></script>
 </body>
 </html>
