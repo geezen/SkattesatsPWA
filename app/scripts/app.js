@@ -1,6 +1,7 @@
 // Main
 updateXRate();
 updateOutput();
+openDB();
 
 function updateXRate() {
     console.log("Updating X-rate");
