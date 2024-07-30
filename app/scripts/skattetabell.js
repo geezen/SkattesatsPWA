@@ -4,6 +4,7 @@ const DB_STORE_NAME = "tabellrad";
 const INITIAL_URL = "https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95?_limit=500";
 
 let db;
+let dbReady = false;
 
 function openDB() {
     const openReq = indexedDB.open("skattetabeller", 1);
@@ -20,6 +21,7 @@ function openDB() {
     openReq.onupgradeneeded = event => {
         const db = event.target.result;
         const objectStore = db.createObjectStore(DB_STORE_NAME, { autoIncrement: true });
+        objectStore.createIndex("skattetabell", ["tabellnr", "år"], { unique: false });
     };
 }
 
@@ -33,10 +35,14 @@ function cacheIfRequired() {
         // använd + fetch ny + ta bort gamal
     } else {
         console.log("Laddar inte nya skattetabeller");
-        const countRequest = getObjectStore().count();
+        const objectStore = getObjectStore();
+        
+        const countRequest = objectStore.count();
         countRequest.onsuccess = () => {
             console.log(`ObjectStore har ${countRequest.result} rader`);
         };
+        
+        dbReady = true;
     }
 };
 
@@ -55,9 +61,11 @@ function downloadSkattetabeller(url) {
                 };
             });
 
-            if (response.next != null) {
+            if (response.next == null) {
+                dbReady = true;
+            } else {
                 downloadSkattetabeller(response.next);
-            }
+            } 
     });
 }
 
