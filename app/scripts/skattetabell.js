@@ -6,6 +6,9 @@ const INITIAL_URL = "https://skatteverket.entryscape.net/rowstore/dataset/883203
 let db;
 let dbReady = false;
 
+let skattetabeller = new Set();
+let years = new Set();
+
 function openDB() {
     const openReq = indexedDB.open("skattetabeller", 1);
 
@@ -35,9 +38,7 @@ function cacheIfRequired() {
         // använd + fetch ny + ta bort gamal
     } else {
         console.log("Laddar inte nya skattetabeller");
-        const objectStore = getObjectStore();
-        
-        const countRequest = objectStore.count();
+        const countRequest = getObjectStore().count();
         countRequest.onsuccess = () => {
             console.log(`ObjectStore har ${countRequest.result} rader`);
         };
@@ -59,14 +60,22 @@ function downloadSkattetabeller(url) {
                 addReq.onerror = () => {
                     console.log(`Unable to add ${row}`);
                 };
+                skattetabeller.add(row["tabellnr"]);
+                years.add(row["år"]);
             });
 
             if (response.next == null) {
-                dbReady = true;
+                downloadCompleted();
             } else {
                 downloadSkattetabeller(response.next);
             } 
     });
+
+    function downloadCompleted() {
+        localStorage.setItem("tabellnr", JSON.stringify(Array.from(skattetabeller).sort()));
+        localStorage.setItem("years", JSON.stringify(Array.from(years).sort()));
+        dbReady = true;
+    }
 }
 
 function getObjectStore() {
