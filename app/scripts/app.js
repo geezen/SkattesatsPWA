@@ -1,7 +1,6 @@
 // Main
 updateXRate();
-updateOutput();
-openDB();
+openDB(updateSkattetabell);
 
 function updateXRate() {
     console.log("Updating X-rate");
@@ -36,7 +35,13 @@ function setNewXRate(dkkObj) {
     xRateField.setAttribute("value", xRate);
 }
 
+function updateSkattetabell() {
+    console.log("Updating skattetabeller");
+    updateOutput();
+}
+
 function updateOutput() {
+    console.log("Updating output");
     const xRate = document.getElementById("vaxelkurs").getAttribute("value");
     const bruttoLonDKK = document.getElementById("bruttolon").getAttribute("value");
 

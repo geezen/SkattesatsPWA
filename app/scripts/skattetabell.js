@@ -4,12 +4,14 @@ const DB_STORE_NAME = "tabellrad";
 const INITIAL_URL = "https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95?_limit=500";
 
 let db;
-let dbReady = false;
+let readyCallback;
 
 let skattetabeller = new Set();
 let years = new Set();
+let expectedRows = -1;
 
-function openDB() {
+function openDB(callback) {
+    readyCallback = callback;
     const openReq = indexedDB.open("skattetabeller", 1);
 
     openReq.onsuccess = event => {
@@ -38,12 +40,7 @@ function cacheIfRequired() {
         // använd + fetch ny + ta bort gamal
     } else {
         console.log("Laddar inte nya skattetabeller");
-        const countRequest = getObjectStore().count();
-        countRequest.onsuccess = () => {
-            console.log(`ObjectStore har ${countRequest.result} rader`);
-        };
-        
-        dbReady = true;
+        dbIsReady();
     }
 };
 
@@ -55,6 +52,7 @@ function downloadSkattetabeller(url) {
             console.log(`Skattetabeller från ${url} mottagna med ${response.results.length} rader`);
             localStorage.setItem("skattetabellerFetchDate", Date.now());
             const objectStore = getObjectStore();
+            expectedRows = response.resultCount;
             response.results.forEach(row => {
                 const addReq = objectStore.add(row);
                 addReq.onerror = () => {
@@ -70,12 +68,20 @@ function downloadSkattetabeller(url) {
                 downloadSkattetabeller(response.next);
             } 
     });
+}
 
-    function downloadCompleted() {
-        localStorage.setItem("tabellnr", JSON.stringify(Array.from(skattetabeller).sort()));
-        localStorage.setItem("years", JSON.stringify(Array.from(years).sort()));
-        dbReady = true;
-    }
+function downloadCompleted() {
+    localStorage.setItem("tabellnr", JSON.stringify(Array.from(skattetabeller).sort()));
+    localStorage.setItem("years", JSON.stringify(Array.from(years).sort()));
+    dbIsReady();
+}
+
+function dbIsReady() {
+    const countRequest = getObjectStore().count();
+    countRequest.onsuccess = () => {
+        console.log(`ObjectStore för skattetabeller har ${countRequest.result} rader, borde ha ${expectedRows} rader`);
+    };
+    readyCallback();
 }
 
 function getObjectStore() {
