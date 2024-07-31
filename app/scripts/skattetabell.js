@@ -8,7 +8,6 @@ let readyCallback;
 
 let skattetabeller = new Set();
 let years = new Set();
-let expectedRows = -1;
 
 function openDB(callback) {
     readyCallback = callback;
@@ -28,6 +27,14 @@ function openDB(callback) {
         const objectStore = db.createObjectStore(DB_STORE_NAME, { autoIncrement: true });
         objectStore.createIndex("skattetabell", ["tabellnr", "år"], { unique: false });
     };
+}
+
+function getTabellNr() {
+    return JSON.parse(localStorage.getItem("tabellnr"));
+}
+
+function getSkatteAr() {
+    return JSON.parse(localStorage.getItem("years"));
 }
 
 function cacheIfRequired() {
@@ -52,7 +59,6 @@ function downloadSkattetabeller(url) {
             console.log(`Skattetabeller från ${url} mottagna med ${response.results.length} rader`);
             localStorage.setItem("skattetabellerFetchDate", Date.now());
             const objectStore = getObjectStore();
-            expectedRows = response.resultCount;
             response.results.forEach(row => {
                 const addReq = objectStore.add(row);
                 addReq.onerror = () => {
@@ -63,6 +69,7 @@ function downloadSkattetabeller(url) {
             });
 
             if (response.next == null) {
+                localStorage.setItem("expectedRows", response.resultCount);
                 downloadCompleted();
             } else {
                 downloadSkattetabeller(response.next);
@@ -79,6 +86,7 @@ function downloadCompleted() {
 function dbIsReady() {
     const countRequest = getObjectStore().count();
     countRequest.onsuccess = () => {
+        expectedRows = localStorage.getItem("expectedRows");
         console.log(`ObjectStore för skattetabeller har ${countRequest.result} rader, borde ha ${expectedRows} rader`);
     };
     readyCallback();

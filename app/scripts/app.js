@@ -37,6 +37,29 @@ function setNewXRate(dkkObj) {
 
 function updateSkattetabell() {
     console.log("Updating skattetabeller");
+    const tabellNr = document.getElementById("tabellNr");
+    const skatteAr = document.getElementById("skatteAr");
+
+    tabellNr.replaceChildren();
+    getTabellNr().forEach(element => {
+        const option = document.createElement("option");
+        const text = document.createTextNode(`Skattetabell ${element}`);
+        option.appendChild(text);
+        tabellNr.appendChild(option);
+    });
+
+    skatteAr.replaceChildren();
+    const currentYear = new Date().getFullYear();
+    getSkatteAr().forEach(element => {
+        const option = document.createElement("option");
+        const text = document.createTextNode(element);
+        if (element == currentYear) {
+            option.setAttribute("selected", "selected");
+        }
+        option.appendChild(text);
+        skatteAr.appendChild(option);
+    });
+
     updateOutput();
 }
 
