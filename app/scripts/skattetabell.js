@@ -37,6 +37,32 @@ function getSkatteAr() {
     return JSON.parse(localStorage.getItem("years"));
 }
 
+function getPrelSkatt(tabellnr, ar, bruttolon, callback) {
+    const objectStore = getObjectStore();
+    const request = objectStore.index("skattetabell").getAll([tabellnr, ar]);
+    bruttolon = bruttolon == 0 ? 1 : bruttolon;
+    request.onsuccess = () => {
+        console.log(`Letar skatt bland ${request.result.length} rader för ${bruttolon} SEK i tabell ${tabellnr} för år ${ar}`);
+        for (const row of request.result) {
+            if (Number(bruttolon) <= row["inkomst t.o.m."] && Number(bruttolon) >= row["inkomst fr.o.m."]) {
+                console.log("Hittade rad", row);
+                let result;
+                if (/.*%/.test(row["antal dgr"])) {
+                    result = bruttolon * Number(row["kolumn 1"]) / 100;
+                } else {
+                    result = Number(row["kolumn 1"]);
+                }
+                callback(result);
+                break;
+            } /* else {
+                console.log("Fortsätter, rad var inte rätt för", bruttolon, row);
+            }*/
+        }
+    };
+}
+
+//private functions
+
 function cacheIfRequired() {
     const skattetabellerFetchDate = localStorage.getItem("skattetabellerFetchDate");
     if (skattetabellerFetchDate == null) {
@@ -53,6 +79,7 @@ function cacheIfRequired() {
 
 function downloadSkattetabeller(url) {
     console.log(`Fetching skattetabeller från ${url}`);
+    //TODO fetch parrallell
     fetch(url)
         .then(rawResponse => rawResponse.json())
         .then(response => {
@@ -93,5 +120,5 @@ function dbIsReady() {
 }
 
 function getObjectStore() {
-    return db.transaction(DB_STORE_NAME, "readwrite").objectStore(DB_STORE_NAME);
+    return db.transaction(DB_STORE_NAME).objectStore(DB_STORE_NAME);
 }

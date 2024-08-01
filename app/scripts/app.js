@@ -61,14 +61,26 @@ function updateSkattetabell() {
     });
 
     updateOutput();
+    
+    document.getElementById("bruttolon").addEventListener('change', updateOutput);
+    document.getElementById("tabellNr").addEventListener('change', updateOutput);
+    document.getElementById("skatteAr").addEventListener('change', updateOutput);
 }
 
 function updateOutput() {
     console.log("Updating output");
-    const xRate = document.getElementById("vaxelkurs").getAttribute("value");
-    const bruttoLonDKK = document.getElementById("bruttolon").getAttribute("value");
+    const xRate = document.getElementById("vaxelkurs").value;
+    const bruttoLonDKK = document.getElementById("bruttolon").value;
 
     const bruttoLonSEK = (xRate * bruttoLonDKK).toFixed(2);
-
     document.getElementById("brutto-sek-out").innerHTML = `SEK ${bruttoLonSEK}`;
+
+    const tabellnr = document.getElementById("tabellNr").value.match(/[0-9]+/)[0];
+    const ar = document.getElementById("skatteAr").value;
+    getPrelSkatt(tabellnr, ar, bruttoLonSEK, prelSkatt => {
+        console.log(`type för prelskatt är ${typeof prelSkatt}`)
+        console.log(`Preliminärskatt för ${bruttoLonSEK} är ${prelSkatt}`)
+        document.getElementById("skatt-sek-out").innerHTML = `SEK ${prelSkatt.toFixed(2)}`;
+        document.getElementById("netto-sek-out").innerHTML = `SEK ${Number(bruttoLonSEK - prelSkatt).toFixed(2)}`;
+    });
 }
