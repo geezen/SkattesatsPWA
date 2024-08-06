@@ -9,6 +9,9 @@ let readyCallback;
 let skattetabeller = new Set();
 let years = new Set();
 
+let sentRequests = 0;
+let fulfilledRequests = 0;
+
 function openDB(callback) {
     readyCallback = callback;
     const openReq = indexedDB.open("skattetabeller", 1);
@@ -40,7 +43,7 @@ function getSkatteAr() {
 function getPrelSkatt(tabellnr, ar, bruttolon, callback) {
     const objectStore = getObjectStore();
     const request = objectStore.index("skattetabell").getAll([tabellnr, ar]);
-    bruttolon = bruttolon == 0 ? 1 : bruttolon;
+    bruttolon = bruttolon < 1 ? 1 : bruttolon;
     request.onsuccess = () => {
         console.log(`Letar skatt bland ${request.result.length} rader för ${bruttolon} SEK i tabell ${tabellnr} för år ${ar}`);
         for (const row of request.result) {
@@ -68,7 +71,7 @@ function cacheIfRequired() {
     if (skattetabellerFetchDate == null) {
         // fetch skattetabeller
         console.log("Laddar ner skattetabeller");
-        downloadSkattetabeller(INITIAL_URL);
+        downloadSkattetabeller1();
     } else if (/*skattetabell är gammal */false) {
         // använd + fetch ny + ta bort gamal
     } else {
@@ -77,12 +80,28 @@ function cacheIfRequired() {
     }
 };
 
-function downloadSkattetabeller(url) {
+function downloadSkattetabeller1() {
+    fetch("https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95?_limit=1")
+        .then(rawResponse => rawResponse.json())
+        .then(response => {
+            const resultCount = response.resultCount;
+            localStorage.setItem("expectedRows", resultCount);
+            for(let i = 0; i < resultCount; i += 500) {
+                sentRequests++;
+                const nextUrl = "https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95/json?_offset=" + i + "&_limit=500";
+                console.log("Nästa URL", nextUrl);
+                downloadSkattetabeller2(nextUrl);
+            }
+        });
+}
+
+function downloadSkattetabeller2(url) {
     console.log(`Fetching skattetabeller från ${url}`);
     //TODO fetch parrallell
     fetch(url)
         .then(rawResponse => rawResponse.json())
         .then(response => {
+            fulfilledRequests++;
             console.log(`Skattetabeller från ${url} mottagna med ${response.results.length} rader`);
             localStorage.setItem("skattetabellerFetchDate", Date.now());
             const objectStore = getObjectStore();
@@ -95,12 +114,9 @@ function downloadSkattetabeller(url) {
                 years.add(row["år"]);
             });
 
-            if (response.next == null) {
-                localStorage.setItem("expectedRows", response.resultCount);
+            if (fulfilledRequests == sentRequests) {
                 downloadCompleted();
-            } else {
-                downloadSkattetabeller(response.next);
-            } 
+            }
     });
 }
 
