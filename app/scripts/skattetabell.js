@@ -120,5 +120,5 @@ function dbIsReady() {
 }
 
 function getObjectStore() {
-    return db.transaction(DB_STORE_NAME).objectStore(DB_STORE_NAME);
+    return db.transaction(DB_STORE_NAME, "readwrite").objectStore(DB_STORE_NAME);
 }
