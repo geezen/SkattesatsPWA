@@ -73,14 +73,14 @@ function updateOutput() {
     const bruttoLonDKK = document.getElementById("bruttolon").value;
 
     const bruttoLonSEK = (xRate * bruttoLonDKK).toFixed(2);
-    document.getElementById("brutto-sek-out").innerHTML = `SEK ${bruttoLonSEK}`;
+    document.getElementById("brutto-sek-out").innerHTML = `SEK ${bruttoLonSEK}`.replace(/[0-9]{3}\./, s => " " + s);
 
     const tabellnr = document.getElementById("tabellNr").value.match(/[0-9]+/)[0];
     const ar = document.getElementById("skatteAr").value;
     getPrelSkatt(tabellnr, ar, bruttoLonSEK, prelSkatt => {
-        console.log(`type för prelskatt är ${typeof prelSkatt}`)
-        console.log(`Preliminärskatt för ${bruttoLonSEK} är ${prelSkatt}`)
-        document.getElementById("skatt-sek-out").innerHTML = `SEK ${prelSkatt.toFixed(2)}`;
-        document.getElementById("netto-sek-out").innerHTML = `SEK ${Number(bruttoLonSEK - prelSkatt).toFixed(2)}`;
+        console.log(`type för prelskatt är ${typeof prelSkatt}`);
+        console.log(`Preliminärskatt för ${bruttoLonSEK} är ${prelSkatt}`);
+        document.getElementById("skatt-sek-out").innerHTML = `SEK ${prelSkatt.toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
+        document.getElementById("netto-sek-out").innerHTML = `SEK ${Number(bruttoLonSEK - prelSkatt).toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
     });
 }
