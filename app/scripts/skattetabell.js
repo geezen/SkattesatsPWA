@@ -71,7 +71,7 @@ function cacheIfRequired() {
     if (skattetabellerFetchDate == null) {
         // fetch skattetabeller
         console.log("Laddar ner skattetabeller");
-        downloadSkattetabeller1();
+        downloadSkattetabeller();
     } else if (/*skattetabell är gammal */false) {
         // använd + fetch ny + ta bort gamal
     } else {
@@ -80,7 +80,7 @@ function cacheIfRequired() {
     }
 };
 
-function downloadSkattetabeller1() {
+function downloadSkattetabeller() {
     fetch("https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95?_limit=1")
         .then(rawResponse => rawResponse.json())
         .then(response => {
@@ -90,14 +90,13 @@ function downloadSkattetabeller1() {
                 sentRequests++;
                 const nextUrl = "https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95/json?_offset=" + i + "&_limit=500";
                 console.log("Nästa URL", nextUrl);
-                downloadSkattetabeller2(nextUrl);
+                downloadSkattetabell(nextUrl);
             }
         });
 }
 
-function downloadSkattetabeller2(url) {
+function downloadSkattetabell(url) {
     console.log(`Fetching skattetabeller från ${url}`);
-    //TODO fetch parrallell
     fetch(url)
         .then(rawResponse => rawResponse.json())
         .then(response => {
@@ -113,6 +112,9 @@ function downloadSkattetabeller2(url) {
                 skattetabeller.add(row["tabellnr"]);
                 years.add(row["år"]);
             });
+
+            const progress = fulfilledRequests * 100 / sentRequests;
+            console.log(`Response received at offset ${response.offset}, ${progress.toFixed(1)}% complete`);
 
             if (fulfilledRequests == sentRequests) {
                 downloadCompleted();
