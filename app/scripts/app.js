@@ -41,19 +41,23 @@ function updateSkattetabell() {
     const skatteAr = document.getElementById("skatteAr");
 
     tabellNr.replaceChildren();
+    const selectedTabell = localStorage.getItem("tabellNr");
     getTabellNr().forEach(element => {
         const option = document.createElement("option");
         const text = document.createTextNode(`Skattetabell ${element}`);
+        if (element == selectedTabell) {
+            option.setAttribute("selected", "selected");
+        }
         option.appendChild(text);
         tabellNr.appendChild(option);
     });
 
     skatteAr.replaceChildren();
-    const currentYear = new Date().getFullYear();
+    const selectedYear = localStorage.getItem("skatteAr") == null ? new Date().getFullYear() : localStorage.getItem("skatteAr");
     getSkatteAr().forEach(element => {
         const option = document.createElement("option");
         const text = document.createTextNode(element);
-        if (element == currentYear) {
+        if (element == selectedYear) {
             option.setAttribute("selected", "selected");
         }
         option.appendChild(text);
@@ -63,8 +67,18 @@ function updateSkattetabell() {
     updateOutput();
     
     document.getElementById("bruttolon").addEventListener('change', updateOutput);
-    document.getElementById("tabellNr").addEventListener('change', updateOutput);
-    document.getElementById("skatteAr").addEventListener('change', updateOutput);
+    document.getElementById("tabellNr").addEventListener('change', updateTabellNr);
+    document.getElementById("skatteAr").addEventListener('change', updateSkatteAr);
+}
+
+function updateTabellNr() {
+    localStorage.setItem("tabellNr", getSelectedTabellNr());
+    updateOutput();
+}
+
+function updateSkatteAr() {
+    localStorage.setItem("skatteAr", getSelectedAr());
+    updateOutput();
 }
 
 function updateOutput() {
@@ -75,12 +89,20 @@ function updateOutput() {
     const bruttoLonSEK = (xRate * bruttoLonDKK).toFixed(2);
     document.getElementById("brutto-sek-out").innerHTML = `SEK ${bruttoLonSEK}`.replace(/[0-9]{3}\./, s => " " + s);
 
-    const tabellnr = document.getElementById("tabellNr").value.match(/[0-9]+/)[0];
-    const ar = document.getElementById("skatteAr").value;
+    const tabellnr = getSelectedTabellNr();
+    const ar = getSelectedAr();
     getPrelSkatt(tabellnr, ar, bruttoLonSEK, prelSkatt => {
         console.log(`type för prelskatt är ${typeof prelSkatt}`);
         console.log(`Preliminärskatt för ${bruttoLonSEK} är ${prelSkatt}`);
         document.getElementById("skatt-sek-out").innerHTML = `SEK ${prelSkatt.toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
         document.getElementById("netto-sek-out").innerHTML = `SEK ${Number(bruttoLonSEK - prelSkatt).toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
     });
+}
+
+function getSelectedAr() {
+    return document.getElementById("skatteAr").value;
+}
+
+function getSelectedTabellNr() {
+    return document.getElementById("tabellNr").value.match(/[0-9]+/)[0];
 }
