@@ -76,7 +76,7 @@ function cacheIfRequired() {
         // använd + fetch ny + ta bort gamal
     } else {
         console.log("Laddar inte nya skattetabeller");
-        dbIsReady();
+        dbReady();
     }
 };
 
@@ -125,10 +125,10 @@ function downloadSkattetabell(url) {
 function downloadCompleted() {
     localStorage.setItem("tabellnr", JSON.stringify(Array.from(skattetabeller).sort()));
     localStorage.setItem("years", JSON.stringify(Array.from(years).sort()));
-    dbIsReady();
+    dbReady();
 }
 
-function dbIsReady() {
+function dbReady() {
     const countRequest = getObjectStore().count();
     countRequest.onsuccess = () => {
         expectedRows = localStorage.getItem("expectedRows");

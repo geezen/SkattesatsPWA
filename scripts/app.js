@@ -1,7 +1,17 @@
+// Variables
+let dbIsReady = false;
+
 // Main
 updateXRate();
-openDB(updateSkattetabell);
+openDB(() => {
+    dbIsReady = true;
+    updateSkattetabell();
+});
 
+document.getElementById("manuell-vaxelkurs").addEventListener('click', setXRateMan);
+document.getElementById("auto-vaxelkurs").addEventListener('click', setXRateAuto);
+
+// Functions
 function updateXRate() {
     console.log("Updating X-rate");
     const dkkObj = JSON.parse(localStorage.getItem("dkkObj"));
@@ -32,7 +42,10 @@ function fetchXRate() {
 function setNewXRate(dkkObj) {
     const xRateField = document.getElementById("vaxelkurs");
     const xRate = dkkObj.rates.SEK;
-    xRateField.setAttribute("value", xRate);
+    xRateField.value = xRate;
+    if (dbIsReady) {
+        updateOutput();
+    }
 }
 
 function updateSkattetabell() {
@@ -69,6 +82,7 @@ function updateSkattetabell() {
     document.getElementById("bruttolon").addEventListener('change', updateOutput);
     document.getElementById("tabellNr").addEventListener('change', updateTabellNr);
     document.getElementById("skatteAr").addEventListener('change', updateSkatteAr);
+    document.getElementById("vaxelkurs").addEventListener('change', updateOutput);
 }
 
 function updateTabellNr() {
@@ -97,6 +111,17 @@ function updateOutput() {
         document.getElementById("skatt-sek-out").innerHTML = `SEK ${prelSkatt.toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
         document.getElementById("netto-sek-out").innerHTML = `SEK ${Number(bruttoLonSEK - prelSkatt).toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
     });
+}
+
+function setXRateAuto() {
+    document.getElementById("manuell-vaxelkurs").checked = false;
+    document.getElementById("vaxelkurs").disabled = true;
+    updateXRate();
+}
+
+function setXRateMan() {
+    document.getElementById("auto-vaxelkurs").checked = false;
+    document.getElementById("vaxelkurs").disabled = false;
 }
 
 function getSelectedAr() {
