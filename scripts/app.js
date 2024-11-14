@@ -106,7 +106,6 @@ function updateOutput() {
     const tabellnr = getSelectedTabellNr();
     const ar = getSelectedAr();
     getPrelSkatt(tabellnr, ar, bruttoLonSEK, prelSkatt => {
-        console.log(`type för prelskatt är ${typeof prelSkatt}`);
         console.log(`Preliminärskatt för ${bruttoLonSEK} är ${prelSkatt}`);
         document.getElementById("skatt-sek-out").innerHTML = `SEK ${prelSkatt.toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
         document.getElementById("netto-sek-out").innerHTML = `SEK ${Number(bruttoLonSEK - prelSkatt).toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);

@@ -6,11 +6,11 @@ const INITIAL_URL = "https://skatteverket.entryscape.net/rowstore/dataset/883203
 let db;
 let readyCallback;
 
-let skattetabeller = new Set();
-let years = new Set();
+let skattetabeller;
+let years;
 
-let sentRequests = 0;
-let fulfilledRequests = 0;
+let sentRequests;
+let fulfilledRequests;
 
 function openDB(callback) {
     readyCallback = callback;
@@ -68,12 +68,14 @@ function getPrelSkatt(tabellnr, ar, bruttolon, callback) {
 
 function cacheIfRequired() {
     const skattetabellerFetchDate = localStorage.getItem("skattetabellerFetchDate");
+    const currentYear = new Date().getFullYear();
     if (skattetabellerFetchDate == null) {
         // fetch skattetabeller
         console.log("Laddar ner skattetabeller");
         downloadSkattetabeller();
-    } else if (/*skattetabell är gammal */false) {
-        // använd + fetch ny + ta bort gamal
+    } else if (/*skattetabell är gammal */ Math.max(...JSON.parse(localStorage.getItem("years"))) < currentYear) {
+        console.log(`Har inte skattetabeller för nuvarande år ${currentYear}. Laddar ner för nya året.`);
+        downloadSkattetabellerForYear(currentYear);
     } else {
         console.log("Laddar inte nya skattetabeller");
         dbReady();
@@ -81,14 +83,36 @@ function cacheIfRequired() {
 };
 
 function downloadSkattetabeller() {
+    skattetabeller = new Set();
+    years = new Set();
+    console.log("fetching...");
     fetch("https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95?_limit=1")
         .then(rawResponse => rawResponse.json())
         .then(response => {
             const resultCount = response.resultCount;
-            localStorage.setItem("expectedRows", resultCount);
+            sentRequests = 0;
+            fulfilledRequests = 0;
             for(let i = 0; i < resultCount; i += 500) {
                 sentRequests++;
                 const nextUrl = "https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95/json?_offset=" + i + "&_limit=500";
+                console.log("Nästa URL", nextUrl);
+                downloadSkattetabell(nextUrl);
+            }
+        });
+}
+
+function downloadSkattetabellerForYear(year) {
+    skattetabeller = new Set(JSON.parse(localStorage.getItem("tabellnr")));
+    years = new Set(JSON.parse(localStorage.getItem("years")));
+    fetch(`https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95?_limit=1&%C3%A5r=${year}`)
+        .then(rawResponse => rawResponse.json())
+        .then(response => {
+            const resultCount = response.resultCount;
+            sentRequests = 0;
+            fulfilledRequests = 0;
+            for(let i = 0; i < resultCount; i += 500) {
+                sentRequests++;
+                const nextUrl = `https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95/json?_offset=${i}&_limit=500&%C3%A5r=${year}`;
                 console.log("Nästa URL", nextUrl);
                 downloadSkattetabell(nextUrl);
             }
@@ -131,12 +155,40 @@ function downloadCompleted() {
 function dbReady() {
     const countRequest = getObjectStore().count();
     countRequest.onsuccess = () => {
-        expectedRows = localStorage.getItem("expectedRows");
-        console.log(`ObjectStore för skattetabeller har ${countRequest.result} rader, borde ha ${expectedRows} rader`);
+        console.log(`ObjectStore för skattetabeller har ${countRequest.result} rader`);
     };
     readyCallback();
 }
 
 function getObjectStore() {
     return db.transaction(DB_STORE_NAME, "readwrite").objectStore(DB_STORE_NAME);
+}
+
+// testing functions
+function deleteYear(year) {
+    years = new Set(JSON.parse(localStorage.getItem("years")));
+    years.delete(year);
+    localStorage.setItem("years", JSON.stringify(Array.from(years).sort()));
+
+    const objectStore = getObjectStore();
+    const cursorRequest = objectStore.openCursor();
+
+    cursorRequest.onsuccess = event => {
+        const cursor = event.target.result;
+        var deletedRecords = 0;
+
+        if (cursor) {
+            // Check if the record matches the condition (e.g., name === 'John')
+            if (cursor.value["år"] == year) {
+                // Delete the record using its key
+                objectStore.delete(cursor.key);
+                deletedRecords++;
+            }
+
+            // Continue iterating through the next record
+            cursor.continue();
+        } else {
+            console.log(`No more records to process. Deleted ${deletedRecords} records`);
+        }
+    };
 }
