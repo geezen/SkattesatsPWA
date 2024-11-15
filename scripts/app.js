@@ -1,15 +1,25 @@
 // Variables
 let dbIsReady = false;
 
+// Event listerners
+document.getElementById("manuell-vaxelkurs").addEventListener('click', setXRateMan);
+document.getElementById("auto-vaxelkurs").addEventListener('click', setXRateAuto);
+document.getElementById("bruttolon").addEventListener('change', updateOutput);
+document.getElementById("tabellNr").addEventListener('change', tabellNrChanged);
+document.getElementById("skatteAr").addEventListener('change', skatteArChanged);
+document.getElementById("vaxelkurs").addEventListener('change', updateOutput);
+
+// Bindings
+const xRateField = document.getElementById("vaxelkurs");
+const tabellNrSelector = document.getElementById("tabellNr");
+const skatteArSelector = document.getElementById("skatteAr");
+
 // Main
 updateXRate();
 openDB(() => {
     dbIsReady = true;
     updateSkattetabell();
 });
-
-document.getElementById("manuell-vaxelkurs").addEventListener('click', setXRateMan);
-document.getElementById("auto-vaxelkurs").addEventListener('click', setXRateAuto);
 
 // Functions
 function updateXRate() {
@@ -40,7 +50,6 @@ function fetchXRate() {
 }
 
 function setNewXRate(dkkObj) {
-    const xRateField = document.getElementById("vaxelkurs");
     const xRate = dkkObj.rates.SEK;
     xRateField.value = xRate;
     if (dbIsReady) {
@@ -50,10 +59,9 @@ function setNewXRate(dkkObj) {
 
 function updateSkattetabell() {
     console.log("Updating skattetabeller");
-    const tabellNr = document.getElementById("tabellNr");
-    const skatteAr = document.getElementById("skatteAr");
 
-    tabellNr.replaceChildren();
+    // Fill tabellNrSelector with options
+    tabellNrSelector.replaceChildren();
     const selectedTabell = localStorage.getItem("tabellNr");
     getTabellNr().forEach(element => {
         const option = document.createElement("option");
@@ -62,10 +70,11 @@ function updateSkattetabell() {
             option.setAttribute("selected", "selected");
         }
         option.appendChild(text);
-        tabellNr.appendChild(option);
+        tabellNrSelector.appendChild(option);
     });
 
-    skatteAr.replaceChildren();
+    // Fill skatteArSelector with options
+    skatteArSelector.replaceChildren();
     const selectedYear = localStorage.getItem("skatteAr") == null ? new Date().getFullYear() : localStorage.getItem("skatteAr");
     getSkatteAr().forEach(element => {
         const option = document.createElement("option");
@@ -74,23 +83,18 @@ function updateSkattetabell() {
             option.setAttribute("selected", "selected");
         }
         option.appendChild(text);
-        skatteAr.appendChild(option);
+        skatteArSelector.appendChild(option);
     });
 
     updateOutput();
-    
-    document.getElementById("bruttolon").addEventListener('change', updateOutput);
-    document.getElementById("tabellNr").addEventListener('change', updateTabellNr);
-    document.getElementById("skatteAr").addEventListener('change', updateSkatteAr);
-    document.getElementById("vaxelkurs").addEventListener('change', updateOutput);
 }
 
-function updateTabellNr() {
+function tabellNrChanged() {
     localStorage.setItem("tabellNr", getSelectedTabellNr());
     updateOutput();
 }
 
-function updateSkatteAr() {
+function skatteArChanged() {
     localStorage.setItem("skatteAr", getSelectedAr());
     updateOutput();
 }
@@ -124,9 +128,9 @@ function setXRateMan() {
 }
 
 function getSelectedAr() {
-    return document.getElementById("skatteAr").value;
+    return skatteArSelector.value;
 }
 
 function getSelectedTabellNr() {
-    return document.getElementById("tabellNr").value.match(/[0-9]+/)[0];
+    return tabellNrSelector.value.match(/[0-9]+/)[0];
 }

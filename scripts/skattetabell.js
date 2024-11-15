@@ -65,7 +65,6 @@ function getPrelSkatt(tabellnr, ar, bruttolon, callback) {
 }
 
 //private functions
-
 function cacheIfRequired() {
     const skattetabellerFetchDate = localStorage.getItem("skattetabellerFetchDate");
     const currentYear = new Date().getFullYear();
@@ -173,12 +172,10 @@ function deleteYear(year) {
     const objectStore = getObjectStore();
     const cursorRequest = objectStore.openCursor();
 
+    let deletedRecords = 0;
     cursorRequest.onsuccess = event => {
         const cursor = event.target.result;
-        var deletedRecords = 0;
-
         if (cursor) {
-            // Check if the record matches the condition (e.g., name === 'John')
             if (cursor.value["år"] == year) {
                 // Delete the record using its key
                 objectStore.delete(cursor.key);
@@ -189,6 +186,7 @@ function deleteYear(year) {
             cursor.continue();
         } else {
             console.log(`No more records to process. Deleted ${deletedRecords} records`);
+            updateSkattetabell();
         }
     };
 }
