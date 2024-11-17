@@ -1,24 +1,30 @@
 // Variables
 let dbIsReady = false;
 
-// Event listerners
-document.getElementById("manuell-vaxelkurs").addEventListener('click', setXRateMan);
-document.getElementById("auto-vaxelkurs").addEventListener('click', setXRateAuto);
-document.getElementById("bruttolon").addEventListener('change', updateOutput);
-document.getElementById("tabellNr").addEventListener('change', tabellNrChanged);
-document.getElementById("skatteAr").addEventListener('change', skatteArChanged);
-document.getElementById("vaxelkurs").addEventListener('change', updateOutput);
-
 // Bindings
 const xRateField = document.getElementById("vaxelkurs");
 const tabellNrSelector = document.getElementById("tabellNr");
 const skatteArSelector = document.getElementById("skatteAr");
+const bruttoLonDKKField = document.getElementById("bruttolon");
+const bruttoSekOut = document.getElementById("brutto-sek-out");
+const skattSekOut = document.getElementById("skatt-sek-out");
+const nettoSekOut = document.getElementById("netto-sek-out");
+const manXRateRadio = document.getElementById("manuell-vaxelkurs");
+const autoXRateRadio = document.getElementById("auto-vaxelkurs");
+
+// Event listerners
+manXRateRadio.addEventListener('click', setXRateMan);
+autoXRateRadio.addEventListener('click', setXRateAuto);
+bruttoLonDKKField.addEventListener('change', updateOutput);
+tabellNrSelector.addEventListener('change', tabellNrChanged);
+skatteArSelector.addEventListener('change', skatteArChanged);
+xRateField.addEventListener('change', updateOutput);
 
 // Main
 updateXRate();
 openDB(() => {
     dbIsReady = true;
-    updateSkattetabell();
+    updateSkattetabellFieldSet();
 });
 
 // Functions
@@ -57,36 +63,32 @@ function setNewXRate(dkkObj) {
     }
 }
 
-function updateSkattetabell() {
+function updateSkattetabellFieldSet() {
     console.log("Updating skattetabeller");
 
     // Fill tabellNrSelector with options
-    tabellNrSelector.replaceChildren();
     const selectedTabell = localStorage.getItem("tabellNr");
-    getTabellNr().forEach(element => {
-        const option = document.createElement("option");
-        const text = document.createTextNode(`Skattetabell ${element}`);
-        if (element == selectedTabell) {
-            option.setAttribute("selected", "selected");
-        }
-        option.appendChild(text);
-        tabellNrSelector.appendChild(option);
-    });
+    fillSelector(tabellNrSelector, getAllTabellNr(), item => `Skattetabell ${item}`, selectedTabell);
 
     // Fill skatteArSelector with options
-    skatteArSelector.replaceChildren();
     const selectedYear = localStorage.getItem("skatteAr") == null ? new Date().getFullYear() : localStorage.getItem("skatteAr");
-    getSkatteAr().forEach(element => {
-        const option = document.createElement("option");
-        const text = document.createTextNode(element);
-        if (element == selectedYear) {
-            option.setAttribute("selected", "selected");
-        }
-        option.appendChild(text);
-        skatteArSelector.appendChild(option);
-    });
+    fillSelector(skatteArSelector, getAllSkatteAr(), item => item, selectedYear);
 
     updateOutput();
+}
+
+function fillSelector(selector, items, nodeTextCreator, initSelected) {
+    selector.replaceChildren();
+    items.forEach(item => {
+        const option = document.createElement("option");
+        const text = nodeTextCreator(item);
+        const textNode = document.createTextNode(text);
+        if (item == initSelected) {
+            option.setAttribute("selected", "selected");
+        }
+        option.appendChild(textNode);
+        selector.appendChild(option);
+    });
 }
 
 function tabellNrChanged() {
@@ -101,30 +103,30 @@ function skatteArChanged() {
 
 function updateOutput() {
     console.log("Updating output");
-    const xRate = document.getElementById("vaxelkurs").value;
-    const bruttoLonDKK = document.getElementById("bruttolon").value;
+    const xRate = xRateField.value;
+    const bruttoLonDKK = bruttoLonDKKField.value;
 
     const bruttoLonSEK = (xRate * bruttoLonDKK).toFixed(2);
-    document.getElementById("brutto-sek-out").innerHTML = `SEK ${bruttoLonSEK}`.replace(/[0-9]{3}\./, s => " " + s);
+    bruttoSekOut.innerHTML = `SEK ${bruttoLonSEK}`.replace(/[0-9]{3}\./, s => " " + s);
 
     const tabellnr = getSelectedTabellNr();
     const ar = getSelectedAr();
     getPrelSkatt(tabellnr, ar, bruttoLonSEK, prelSkatt => {
         console.log(`Preliminärskatt för ${bruttoLonSEK} är ${prelSkatt}`);
-        document.getElementById("skatt-sek-out").innerHTML = `SEK ${prelSkatt.toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
-        document.getElementById("netto-sek-out").innerHTML = `SEK ${Number(bruttoLonSEK - prelSkatt).toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
+        skattSekOut.innerHTML = `SEK ${prelSkatt.toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
+        nettoSekOut.innerHTML = `SEK ${Number(bruttoLonSEK - prelSkatt).toFixed(2)}`.replace(/[0-9]{3}\./, s => " " + s);
     });
 }
 
 function setXRateAuto() {
-    document.getElementById("manuell-vaxelkurs").checked = false;
-    document.getElementById("vaxelkurs").disabled = true;
+    manXRateRadio.checked = false;
+    xRateField.disabled = true;
     updateXRate();
 }
 
 function setXRateMan() {
-    document.getElementById("auto-vaxelkurs").checked = false;
-    document.getElementById("vaxelkurs").disabled = false;
+    autoXRateRadio.checked = false;
+    xRateField.disabled = false;
 }
 
 function getSelectedAr() {

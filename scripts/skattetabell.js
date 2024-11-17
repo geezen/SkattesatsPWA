@@ -1,17 +1,18 @@
+// Constants
 const DB_NAME = "skattetabeller";
 const DB_VERSION = 1;
 const DB_STORE_NAME = "tabellrad";
 const INITIAL_URL = "https://skatteverket.entryscape.net/rowstore/dataset/88320397-5c32-4c16-ae79-d36d95b17b95?_limit=500";
 
+// Variables
 let db;
 let readyCallback;
-
 let skattetabeller;
 let years;
-
 let sentRequests;
 let fulfilledRequests;
 
+// Public functions
 function openDB(callback) {
     readyCallback = callback;
     const openReq = indexedDB.open("skattetabeller", 1);
@@ -32,11 +33,11 @@ function openDB(callback) {
     };
 }
 
-function getTabellNr() {
+function getAllTabellNr() {
     return JSON.parse(localStorage.getItem("tabellnr"));
 }
 
-function getSkatteAr() {
+function getAllSkatteAr() {
     return JSON.parse(localStorage.getItem("years"));
 }
 
@@ -64,7 +65,7 @@ function getPrelSkatt(tabellnr, ar, bruttolon, callback) {
     };
 }
 
-//private functions
+// Private functions
 function cacheIfRequired() {
     const skattetabellerFetchDate = localStorage.getItem("skattetabellerFetchDate");
     const currentYear = new Date().getFullYear();
@@ -163,7 +164,7 @@ function getObjectStore() {
     return db.transaction(DB_STORE_NAME, "readwrite").objectStore(DB_STORE_NAME);
 }
 
-// testing functions
+// Testing functions
 function deleteYear(year) {
     years = new Set(JSON.parse(localStorage.getItem("years")));
     years.delete(year);
@@ -186,7 +187,7 @@ function deleteYear(year) {
             cursor.continue();
         } else {
             console.log(`No more records to process. Deleted ${deletedRecords} records`);
-            updateSkattetabell();
+            updateSkattetabellFieldSet();
         }
     };
 }
